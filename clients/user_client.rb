@@ -1,27 +1,27 @@
 require 'httparty'
 
 class UserLibraryClient
-  BASE_URL = 'https://petstore.swagger.io/v2/user'
 
-  def self.create_new_user(parametrs = {})
-    HTTParty.post(BASE_URL,  
-       body: parametrs.to_json,
+private
+def self.send_request(type, username = nil, body = {})
+  url = 'https://petstore.swagger.io/v2/user'
+  case type
+  when :get
+    HTTParty.get("#{url}/#{username}")
+  when :delete
+    HTTParty.delete("#{url}/#{username}")
+  when :post 
+     HTTParty.post(url,  
+       body: body.to_json,
        headers: { "Content-Type" => "application/json" }
     )
-  end
-
-  def self.get_user(username)
-    HTTParty.get("#{BASE_URL}/#{username}")
-  end
-
-  def self.update_user(username, parametrs = {})
-    HTTParty.put("#{BASE_URL}/#{username}",
-      body: parametrs.to_json,
+  when :put
+    HTTParty.put("#{url}/#{username}",
+      body: body.to_json,
       headers: { "Content-Type" => "application/json" }
     )
+  else
+    raise "Invalid HTTP method type"
   end
-
-  def self.delete_user(username)
-    HTTParty.delete("#{BASE_URL}/#{username}")
-  end
+ end
 end
