@@ -4,69 +4,77 @@ require 'json'
 require_relative '../../clients/user_client'
 require 'faker'
 
-RSpec.describe 'Describe tests for user' do
-  RSpec.shared_examples 'verifies different types of response' do |response, expected_code, tag|
-    it "verifies that the test returns #{expected_code}", tag do
-      expect(response.code).to eq(expected_code)
-    end
+RSpec.shared_examples 'verifies response code' do |expected_code|
+  it "returns #{expected_code}" do
+    expect(response.code).to eq(expected_code)
+  end
+end
+
+RSpec.describe 'API requests for user' do
+  let(:new_user_id) { 200055 }
+  let(:new_username) { 'tarrik22' }
+  let(:existing_username) { 'tarrik' }
+  let(:invalid_username) { Faker::Internet.username }
+  let(:update_user_id) { 2000056 }
+  let(:first_name) { 'Taras' }
+  let(:last_name) { 'Yakushevych' }
+  let(:update_user_name) { 'tarrik_new' }
+  let(:invalid_first_name) { Faker::Name.first_name }
+  let(:invalid_last_name) { Faker::Name.last_name }
+  let(:invalid_id) { Faker::Number.number(digits: 10) }
+
+  context 'POST /user', :test_create_user do
+    let(:response) { UserLibraryClient.create_user(body: { id: new_user_id, username: new_username }) }
+    it_behaves_like 'verifies response code', 200
   end
 
-  response = UserLibraryClient.send_request(
-    :post,
-    body: { id: 20005, username: 'tarrik2' }
-  )
-  include_examples 'verifies different types of response', response, 200, :test_create_user
+  context 'GET /user', :test_get_user do
+    let(:response) { UserLibraryClient.get_user(existing_username) }
+    it_behaves_like 'verifies response code', 200
+  end
 
-  response = UserLibraryClient.send_request(
-    :get,
-    'tarrik2'
-  )
-  include_examples 'verifies different types of response', response, 200, :test_get_user
+  context 'PUT /user', :test_update_user do
+    let(:response) do
+      UserLibraryClient.update_user(
+        existing_username,
+        body: { id: update_user_id, username: update_user_name, firstName: first_name, lastName: last_name }
+      )
+    end
+    it_behaves_like 'verifies response code', 200
+  end
 
-  response = UserLibraryClient.send_request(
-    :put,
-    'taras',
-    { id: 20002, username: 'tarrik_new', firstName: 'Taras', lastName: 'Yakushevych' }
-  )
-  include_examples 'verifies different types of response', response, 200, :test_update_user
+  context 'DELETE /user', :test_delete_user do
+    let(:response) { UserLibraryClient.delete_user(existing_username) }
+    it_behaves_like 'verifies response code', 200
+  end
 
-  response = UserLibraryClient.send_request(
-    :delete,
-    'tarrik2'
-  )
-  include_examples 'verifies different types of response', response, 200, :test_delete_user
+  context 'GET non-existent user', :test_get_user do
+    let(:response) { UserLibraryClient.get_user(invalid_username) }
+    it_behaves_like 'verifies response code', 404
+  end
 
-  response = UserLibraryClient.send_request(
-    :get,
-    Faker::Internet.username
-  )
-  include_examples 'verifies different types of response', response, 404, :test_get_user
+  context 'PUT non-existent user', :test_update_user do
+    let(:response) do
+      UserLibraryClient.update_user(
+        invalid_username,
+        body: { id: invalid_id, username: invalid_username, firstName: invalid_first_name, lastName: invalid_last_name }
+      )
+    end
+    it_behaves_like 'verifies response code', 404
+  end
 
-  response = UserLibraryClient.send_request(
-    :put,
-    Faker::Internet.username,
-    { id: Faker::Number.number(digits: 10),
-      username: Faker::Internet.username,
-      firstName: Faker::Name.first_name,
-      lastName: Faker::Name.last_name }
-  )
-  include_examples 'verifies different types of response', response, 404, :test_update_user
+  context 'DELETE non-existent user', :test_delete_user do
+    let(:response) { UserLibraryClient.delete_user(invalid_username) }
+    it_behaves_like 'verifies response code', 404
+  end
 
-  response = UserLibraryClient.send_request(
-    :delete,
-    Faker::Internet.username
-  )
-  include_examples 'verifies different types of response', response, 404, :test_delete_user
+  context 'POST with invalid body', :test_create_user do
+    let(:response) { UserLibraryClient.create_user(body: { fake: invalid_username }) }
+    it_behaves_like 'verifies response code', 500
+  end
 
-  response = UserLibraryClient.send_request(
-    :post,
-    body: Faker::Internet.username
-  )
-  include_examples 'verifies different types of response', response, 500, :test_create_user
-
-  response = UserLibraryClient.send_request(
-    :get,
-    ''
-  )
-  include_examples 'verifies different types of response', response, 405, :test_get_user
+  context 'GET empty username', :test_get_user do
+    let(:response) { UserLibraryClient.get_user('') }
+    it_behaves_like 'verifies response code', 405
+  end
 end
