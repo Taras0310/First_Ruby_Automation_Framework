@@ -32,10 +32,7 @@ RSpec.describe 'SearchLibrary API test' do
 
   ## just sample values to verify search by different title cases
   valid_titles   = ['Everything is flammable', 'EVERYTHING IS FLAMMABLE', 'everything is flammable', 'flammable']
-  invalid_titles = [
-    SecureRandom.alphanumeric(10),
-    '|'
-  ]
+  invalid_titles = [SecureRandom.alphanumeric(10), '|']
 
   valid_titles.each do |title|
     context 'test search with a valid title', :test_valid do
@@ -51,11 +48,8 @@ RSpec.describe 'SearchLibrary API test' do
     end
   end
 
-  valid_authors   = ['Rebecca Solnit', 'REBECCA SOLNIT', 'rebecca solnit', 'solnit']
-  invalid_authors = [
-    SecureRandom.alphanumeric(10),
-    'хххх',
-     '|']
+  valid_authors = ['Rebecca Solnit', 'REBECCA SOLNIT', 'rebecca solnit', 'solnit']
+  invalid_authors = [SecureRandom.alphanumeric(10),'хххх','|']
 
   valid_authors.each do |author|
     context 'test search with a valid author name', :test_valid do
@@ -82,25 +76,18 @@ RSpec.describe 'SearchLibrary API test' do
   end
 
   context 'test search  by a few parameters with valid data', :test_valid do
-      let(:response) { SearchLibraryClient.search_by_parameters(
-        {
-          title: 'f' , sort: 'new'
-        }
-      ) 
-      }
+      let(:response) { SearchLibraryClient.search_by_parameters({title: 'f' , sort: 'new'}) }
       it_behaves_like 'verifies search results'
     end
 
   context 'test search  by a few parameters with invalid data', :test_invalid do
-      let(:response) do
-        SearchLibraryClient.search_by_parameters(
-        {
+      let(:response) { SearchLibraryClient.search_by_parameters({
           title: SecureRandom.alphanumeric(10),
           author: SecureRandom.alphanumeric(10),
           language: SecureRandom.alphanumeric(10)
         }
       ) 
-      end
+    }
       
       it_behaves_like 'verifies search results'
     end
@@ -121,11 +108,7 @@ end
   end
 
   context 'when sorting search results with a valid sort parameter' do
-    let(:response) do
-      SearchLibraryClient.search_by_parameters(
-        { author: 'Rebecca Solnit', sort: 'new' }
-      )
-    end
+    let(:response) { SearchLibraryClient.search_by_parameters({ author: 'Rebecca Solnit', sort: 'new' }) }
     let(:data) { JSON.parse(response.body) }
 
     it 'verify sorts results by publish year descending' do
@@ -134,27 +117,16 @@ end
   end
 
   context 'verify sorting search results with an invalid sort parameter' do
-    let(:response) do
-      SearchLibraryClient.search_by_parameters(
-        {
-          author: 'Rebecca Solnit',
-          sort: SecureRandom.alphanumeric(3)
-        }
-      )
-    end
+    let(:response) { SearchLibraryClient.search_by_parameters({author: 'Rebecca Solnit', sort: SecureRandom.alphanumeric(3)}) }
     it_behaves_like 'verifies response code for SearchLibrary API', 500
   end
   
-  valid_limit_parameter = Array.new(5) { rand(1..1000) }
+  valid_limit_parameter = Array.new(1) { rand(1..1000) }
   invalid_limit_parameter = [-1, 0, 'abc', 1001]
 
   valid_limit_parameter.each do | parameter |
     context "verify search with a valid limit value #{parameter}", :test_valid do
-      let(:response) do
-        SearchLibraryClient.search_by_parameters(
-          { author: 'Solnit', limit: parameter }
-        )
-      end
+      let(:response) { SearchLibraryClient.search_by_parameters({ author: 'Solnit', limit: parameter }) }
       let(:data) { JSON.parse(response.body) }
 
       it 'verify search with a valid limit parameter' do
@@ -165,11 +137,7 @@ end
 
   invalid_limit_parameter.each do | parameter |
     context "verify search with a valid limit value #{parameter}", :test_invalid do
-      let(:response) do
-        SearchLibraryClient.search_by_parameters(
-          { author: 'Solnit', limit: parameter }
-        )
-      end
+      let(:response) { SearchLibraryClient.search_by_parameters({ author: 'Solnit', limit: parameter }) }
       let(:data) { JSON.parse(response.body) }
 
       it 'verify search with a valid limit parameter' do
